@@ -3,3 +3,5 @@
 .DS_Store
 build
 venv
+startup.sh
+*.fits

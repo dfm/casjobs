@@ -27,13 +27,15 @@ class CasJobs(object):
       with `http://casjobs.sdss.org/CasJobs/services/jobs.asmx`.
 
     """
-    def __init__(self, **kwargs):
-        self.userid = kwargs.pop("userid",
-                int(os.environ.get("CASJOBS_WSID", 0)))
-        self.password = kwargs.pop("password",
-                os.environ.get("CASJOBS_PW", None))
-        self.base_url = kwargs.pop("base_url",
-                "http://casjobs.sdss.org/CasJobs/services/jobs.asmx")
+    def __init__(self, userid=None, password=None,
+            base_url="http://casjobs.sdss.org/CasJobs/services/jobs.asmx"):
+        self.userid = userid
+        if userid is None:
+            self.userid = int(os.environ["CASJOBS_WSID"])
+        self.password = password
+        if password is None:
+            self.password = os.environ["CASJOBS_PW"]
+        self.base_url = base_url
 
         # MAGIC: job status ids.
         self.status_codes = ("ready", "started", "canceling", "cancelled",
@@ -129,6 +131,18 @@ class CasJobs(object):
         status = int(self._parse_single(r.text, "int"))
         return status, self.status_codes[status]
 
+    def cancel(self, job_id):
+        """
+        Cancel a job.
+
+        ## Arguments
+
+        * `job_id` (int): The job to check.
+
+        """
+        params = {"jobid": job_id}
+        self._send_request("CancelJob", params=params)
+
     def monitor(self, job_id, timeout=5):
         """
         Monitor the status of a job.
@@ -151,8 +165,98 @@ class CasJobs(object):
                 return status
             time.sleep(5)
 
+    def job_info(self, **kwargs):
+        search = ";".join(["%s : %s"%(k, str(kwargs[k])) for k in kwargs])
+        params = {"owner_wsid": self.userid, "owner_pw": self.password,
+                "conditions": search, "includeSystem": False}
+        r = self._send_request("GetJobs", params=params)
+        results = []
+        for n in minidom.parseString(r.text).getElementsByTagName("CJJob"):
+            results.append({})
+            for e in n.childNodes:
+                if e.nodeType != e.TEXT_NODE:
+                    results[-1][e.tagName] = e.firstChild.data
+        return results
+
+    def request_output(self, table, outtype):
+        """
+        Request the output for a given table.
+
+        ## Arguments
+
+        * `table` (str): The name of the table to export.
+        * `outtype` (str): The type of output. Must be one of:
+            CSV     - Comma Seperated Values
+            DataSet - XML DataSet
+            FITS    - Flexible Image Transfer System (FITS Binary)
+            VOTable - XML Virtual Observatory VOTABLE
+
+        """
+        job_types = ["CSV", "DataSet", "FITS", "VOTable"]
+        assert outtype in job_types
+        params = {"tableName": table, "type": outtype}
+        r = self._send_request("SubmitExtractJob", params=params)
+        job_id = int(self._parse_single(r.text, "long"))
+        return job_id
+
+    def get_output(self, job_id, outfn):
+        """
+        Download an output file given the id of the output request job.
+
+        ## Arguments
+
+        * `job_id` (int): The id of the _output_ job.
+        * `outfn` (str): The file where the output should be stored.
+
+        """
+        job_info = self.job_info(jobid=job_id)[0]
+
+        # Make sure that the job is finished.
+        status = int(job_info["Status"])
+        if status != 5:
+            raise Exception("The status of job %d is %d (%s)"
+                    %(job_id, status, self.status_codes[status]))
+
+        # Try to download the output file.
+        remotefn = job_info["OutputLoc"]
+        r = requests.get(remotefn)
+
+        # Make sure that the request went through.
+        code = r.status_code
+        if code != 200:
+            raise Exception("Getting file %s yielded status: %d"
+                    %(remotefn, code))
+
+        # Save the data to a file.
+        f = open(outfn, "wb")
+        f.write(r.content)
+        f.close()
+
+    def drop_table(self, table):
+        """
+        Drop a table from the MyDB context.
+
+        ## Arguments
+
+        * `table` (str): The name of the table to drop.
+
+        """
+        job_id = self.submit("DROP TABLE %s"%table, context="MYDB")
+        status = self.monitor(job_id)
+        if status[0] != 5:
+            raise Exception("Couldn't drop table %s"%table)
+
 if __name__ == '__main__':
     jobs = CasJobs()
+
+    print jobs.drop_table("pisces2")
+
+    # job_id = jobs.request_output("pisces2", "FITS")
+    # jobs.monitor(job_id)
+    # jobs.get_output(job_id, "test.fits")
+
+    raise Exception()
+
     job_id = jobs.submit("""SELECT *
 INTO mydb.pisces2
 FROM Stripe82..Field AS p
