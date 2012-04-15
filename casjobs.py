@@ -261,6 +261,28 @@ class CasJobs(object):
         f.write(r.content)
         f.close()
 
+    def request_and_get_output(self, table, outtype, outfn):
+        """
+        Shorthand for requesting an output file and then downloading it when
+        ready.
+
+        ## Arguments
+
+        * `table` (str): The name of the table to export.
+        * `outtype` (str): The type of output. Must be one of:
+            CSV     - Comma Seperated Values
+            DataSet - XML DataSet
+            FITS    - Flexible Image Transfer System (FITS Binary)
+            VOTable - XML Virtual Observatory VOTABLE
+        * `outfn` (str): The file where the output should be stored.
+
+        """
+        job_id = self.request_output(table, outtype)
+        status = self.monitor(job_id)
+        if status[0] != 5:
+            raise Exception("Output request failed.")
+        self.get_output(job_id, outfn)
+
     def drop_table(self, table):
         """
         Drop a table from the MyDB context.
