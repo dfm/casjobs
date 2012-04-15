@@ -88,6 +88,28 @@ class CasJobs(object):
         return minidom.parseString(text)\
                 .getElementsByTagName(tagname)[0].firstChild.data
 
+    def quick(self, q, context="DR7", task_name="quickie"):
+        """
+        Run a quick job.
+
+        ## Arguments
+
+        * `q` (str): The SQL query.
+
+        ## Keyword Arguments
+
+        * `task_name` (str): The task name.
+
+        ## Returns
+
+        * `results` (str): The result of the job as a long string.
+
+        """
+        params = {"qry": q, "context": context, "taskname": task_name,
+                "isSystem": False}
+        r = self._send_request("ExecuteQuickJob", params=params)
+        return self._parse_single(r.text, "string")
+
     def submit(self, q, context="DR7", task_name="casjobs", estimate=30):
         """
         Submit a job to CasJobs.
