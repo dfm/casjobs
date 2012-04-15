@@ -3,14 +3,14 @@ Interface to CasJobs for Humans.(TM)
 
 """
 
+__all__ = ["CasJobs"]
+
 import time
 import os
 import logging
 from xml.dom import minidom
 
 import requests
-
-__all__ = ["CasJobs"]
 
 class CasJobs(object):
     """
