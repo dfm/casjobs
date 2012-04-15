@@ -10,7 +10,7 @@ setup(
     author="Daniel Foreman-Mackey",
     author_email="danfm@nyu.edu",
     url="https://github.com/dfm/casjobs",
-    packages=["casjobs",],
+    py_modules=["casjobs",],
     install_requires=required,
     license="MIT",
     description="An interface to CasJobs for Humans.",
