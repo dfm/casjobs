@@ -188,6 +188,13 @@ class CasJobs(object):
             time.sleep(5)
 
     def job_info(self, **kwargs):
+        """
+        Get the information about the jobs returned by a particular search.
+        See the [GetJobs][] documentation for more info.
+
+        [GetJobs]: http://casjobs.sdss.org/casjobs/services/jobs.asmx?op=GetJobs
+
+        """
         search = ";".join(["%s : %s"%(k, str(kwargs[k])) for k in kwargs])
         params = {"owner_wsid": self.userid, "owner_pw": self.password,
                 "conditions": search, "includeSystem": False}
@@ -267,4 +274,21 @@ class CasJobs(object):
         status = self.monitor(job_id)
         if status[0] != 5:
             raise Exception("Couldn't drop table %s"%table)
+
+    def count(self, q):
+        """
+        Shorthand for counting the results of a specific query.
+
+        ## Arguments
+
+        * `q` (str): The query to count. This will be executed as:
+          `"SELECT COUNT(*) %s" % q`.
+
+        ## Returns
+
+        * `count` (int): The resulting count.
+
+        """
+        q = "SELECT COUNT(*) %s"%q
+        return int(self.quick(q).split("\n")[1])
 
