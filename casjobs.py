@@ -246,22 +246,3 @@ class CasJobs(object):
         if status[0] != 5:
             raise Exception("Couldn't drop table %s"%table)
 
-if __name__ == '__main__':
-    jobs = CasJobs()
-
-    print jobs.drop_table("pisces2")
-
-    # job_id = jobs.request_output("pisces2", "FITS")
-    # jobs.monitor(job_id)
-    # jobs.get_output(job_id, "test.fits")
-
-    raise Exception()
-
-    job_id = jobs.submit("""SELECT *
-INTO mydb.pisces2
-FROM Stripe82..Field AS p
-WHERE p.mjd_g > 0 AND p.ramin < 355 AND p.ramax > 355""")
-
-    status = jobs.monitor(job_id)
-    print status
-
