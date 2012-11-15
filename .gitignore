@@ -6,3 +6,4 @@ venv
 startup.sh
 *.fits
 *.egg-info
+dist
