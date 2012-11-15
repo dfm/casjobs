@@ -6,12 +6,16 @@ in my opinion.
 Usage
 -----
 
-Install it:::
+Install it:
+
+::
 
     pip install casjobs
 
 Here's how you might get the fields in Stripe 82 that hit the Pisces
-overdensity:::
+overdensity:
+
+::
 
     import casjobs
 
