@@ -5,3 +5,4 @@ build
 venv
 startup.sh
 *.fits
+*.egg-info
