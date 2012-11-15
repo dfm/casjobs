@@ -29,7 +29,6 @@ overdensity:
     job_id = jobs.submit(query)
     status = jobs.monitor(job_id)
     print status
-    ```
 
 License
 -------
