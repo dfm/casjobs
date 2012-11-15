@@ -1,6 +1,22 @@
-from distutils.core import setup
+#!/usr/bin/env python
 
-desc = open("README.md").read()
+try:
+    from setuptools import setup, Extension
+    setup, Extension
+except ImportError:
+    from distutils.core import setup
+    from distutils.extension import Extension
+    setup, Extension
+
+import os
+import sys
+
+if sys.argv[-1] == "publish":
+    os.system("python setup.py sdist upload")
+    sys.exit()
+
+
+desc = open("README.rst").read()
 with open("requirements.txt") as f:
     required = f.readlines()
 
@@ -10,7 +26,7 @@ setup(
     author="Daniel Foreman-Mackey",
     author_email="danfm@nyu.edu",
     url="https://github.com/dfm/casjobs",
-    py_modules=["casjobs",],
+    py_modules=["casjobs", ],
     install_requires=required,
     license="MIT",
     description="An interface to CasJobs for Humans.",
@@ -24,4 +40,3 @@ setup(
         "Programming Language :: Python",
     ],
 )
-
