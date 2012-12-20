@@ -315,3 +315,17 @@ class CasJobs(object):
         """
         q = "SELECT COUNT(*) %s"%q
         return int(self.quick(q).split("\n")[1])
+
+    def list_tables(self):
+        """
+        Lists the tables in mydb.
+
+        ## Returns
+
+        * `tables` (list): A list of strings with all the table names from mydb.
+        """
+        q = 'SELECT Distinct TABLE_NAME FROM information_schema.TABLES'
+        res = self.quick(q, context='MYDB', task_name='listtables', system=True)
+        # the first line is a header and the last is always empty
+        # also, the table names have " as the first and last characters
+        return [l[1:-1]for l in res.split('\n')[1:-1]]
