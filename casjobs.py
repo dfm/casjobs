@@ -88,7 +88,7 @@ class CasJobs(object):
         return minidom.parseString(text)\
                 .getElementsByTagName(tagname)[0].firstChild.data
 
-    def quick(self, q, context="DR7", task_name="quickie"):
+    def quick(self, q, context="DR7", task_name="quickie", system=False):
         """
         Run a quick job.
 
@@ -99,6 +99,8 @@ class CasJobs(object):
         ## Keyword Arguments
 
         * `task_name` (str): The task name.
+        * `system` (bool) : Whether or not to run this job as a system job (not
+          visible in the web UI or history)
 
         ## Returns
 
@@ -106,7 +108,7 @@ class CasJobs(object):
 
         """
         params = {"qry": q, "context": context, "taskname": task_name,
-                "isSystem": False}
+                "isSystem": system}
         r = self._send_request("ExecuteQuickJob", params=params)
         return self._parse_single(r.text, "string")
 
@@ -313,4 +315,3 @@ class CasJobs(object):
         """
         q = "SELECT COUNT(*) %s"%q
         return int(self.quick(q).split("\n")[1])
-
