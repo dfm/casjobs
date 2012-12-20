@@ -121,7 +121,7 @@ class CasJobs(object):
         ## Keyword Arguments
 
         * `task_name` (str): The task name.
-        * `estimate` (int): Estimate.
+        * `estimate` (int): Estimate if the time this job will take (in minutes).
 
         ## Returns
 
