@@ -172,6 +172,7 @@ class CasJobs(object):
         ## Arguments
 
         * `job_id` (int): The job to check.
+        * `timeout` (float): The time to wait between checks (in sec).
 
         ## Returns
 
@@ -185,7 +186,7 @@ class CasJobs(object):
                     %(job_id, status[0], status[1]))
             if status[0] in [3, 4, 5]:
                 return status
-            time.sleep(5)
+            time.sleep(timeout)
 
     def job_info(self, **kwargs):
         """
