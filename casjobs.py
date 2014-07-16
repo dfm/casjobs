@@ -24,11 +24,13 @@ class CasJobs(object):
       provided by the `CASJOBS_PW` environment variable.
     * `base_url` (str): The base URL that you'd like to use depending on the
       service that you're accessing. This module has only really been tested
-      with `http://casjobs.sdss.org/CasJobs/services/jobs.asmx`.
+      with ``http://casjobs.sdss.org/CasJobs/services/jobs.asmx`` (the original
+      CasJobs for SDSS I and II, closed Jul 31, 2014), as well as the default
+      (maintained by SDSS III).
 
     """
     def __init__(self, userid=None, password=None,
-            base_url="http://casjobs.sdss.org/CasJobs/services/jobs.asmx"):
+            base_url="http://skyserver.sdss3.org/casjobs/services/jobs.asmx"):
         self.userid = userid
         if userid is None:
             self.userid = int(os.environ["CASJOBS_WSID"])
