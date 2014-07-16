@@ -27,10 +27,16 @@ class CasJobs(object):
       with ``http://casjobs.sdss.org/CasJobs/services/jobs.asmx`` (the original
       CasJobs for SDSS I and II, closed Jul 31, 2014), as well as the default
       (maintained by SDSS III).
+    * `request_type` (str): The type of HTTP request to use to access the
+      CasJobs services.  Can be either 'GET' or 'POST'.  Typically you
+      may as well stick with 'GET', unless you want to submit some long
+      queries (>~2000 characters or something like that).  In that case,
+      you'll need 'POST' because it has no length limit.
 
     """
     def __init__(self, userid=None, password=None,
-            base_url="http://skyserver.sdss3.org/casjobs/services/jobs.asmx"):
+                 base_url="http://skyserver.sdss3.org/casjobs/services/jobs.asmx",
+                 request_type="GET"):
         self.userid = userid
         if userid is None:
             self.userid = int(os.environ["CASJOBS_WSID"])
@@ -42,6 +48,10 @@ class CasJobs(object):
         # MAGIC: job status ids.
         self.status_codes = ("ready", "started", "canceling", "cancelled",
                              "failed", "finished")
+
+        if request_type.upper() not in ('GET', 'POST'):
+            raise ValueError('`request_type` can only be either "GET" or "POST"')
+        self.request_type = request_type.upper()
 
     def _send_request(self, job_type, params={}):
         """
@@ -65,7 +75,12 @@ class CasJobs(object):
         params["pw"]   = params.get("pw", self.password)
 
         path = os.path.join(self.base_url, job_type)
-        r = requests.get(path, params=params)
+        if self.request_type == 'GET':
+            r = requests.get(path, params=params)
+        elif self.request_type == 'POST':
+            r = requests.get(path, params=params)
+        else:
+            raise ValueError('`resest_type` is invalid!')
 
         code = r.status_code
         if code != 200:
