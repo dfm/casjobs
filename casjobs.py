@@ -78,7 +78,7 @@ class CasJobs(object):
         if self.request_type == 'GET':
             r = requests.get(path, params=params)
         elif self.request_type == 'POST':
-            r = requests.get(path, params=params)
+            r = requests.post(path, data=params)
         else:
             raise ValueError('`resest_type` is invalid!')
 
