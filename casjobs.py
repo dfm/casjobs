@@ -264,6 +264,7 @@ class CasJobs(object):
 
         * `job_id` (int): The id of the _output_ job.
         * `outfn` (str): The file where the output should be stored.
+            May also be a file-like object with a 'write' method.
 
         """
         job_info = self.job_info(jobid=job_id)[0]
@@ -285,9 +286,12 @@ class CasJobs(object):
                     %(remotefn, code))
 
         # Save the data to a file.
-        f = open(outfn, "wb")
-        f.write(r.content)
-        f.close()
+        try:
+            outfn.write(r.content)
+        except AttributeError:
+            f = open(outfn, "wb")
+            f.write(r.content)
+            f.close()
 
     def request_and_get_output(self, table, outtype, outfn):
         """
@@ -303,6 +307,7 @@ class CasJobs(object):
             FITS    - Flexible Image Transfer System (FITS Binary)
             VOTable - XML Virtual Observatory VOTABLE
         * `outfn` (str): The file where the output should be stored.
+            May also be a file-like object with a 'write' method.
 
         """
         job_id = self.request_output(table, outtype)
