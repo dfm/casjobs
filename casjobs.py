@@ -32,11 +32,12 @@ class CasJobs(object):
       may as well stick with 'GET', unless you want to submit some long
       queries (>~2000 characters or something like that).  In that case,
       you'll need 'POST' because it has no length limit.
+    * `context` (str): Default context that is used for queries.
 
     """
     def __init__(self, userid=None, password=None,
                  base_url="http://skyserver.sdss3.org/casjobs/services/jobs.asmx",
-                 request_type="GET"):
+                 request_type="GET", context="DR7"):
         self.userid = userid
         if userid is None:
             self.userid = int(os.environ["CASJOBS_WSID"])
@@ -44,6 +45,7 @@ class CasJobs(object):
         if password is None:
             self.password = os.environ["CASJOBS_PW"]
         self.base_url = base_url
+        self.context = context
 
         # MAGIC: job status ids.
         self.status_codes = ("ready", "started", "canceling", "cancelled",
@@ -105,7 +107,7 @@ class CasJobs(object):
         return minidom.parseString(text)\
                 .getElementsByTagName(tagname)[0].firstChild.data
 
-    def quick(self, q, context="DR7", task_name="quickie", system=False):
+    def quick(self, q, context=None, task_name="quickie", system=False):
         """
         Run a quick job.
 
@@ -115,6 +117,7 @@ class CasJobs(object):
 
         ## Keyword Arguments
 
+        * `context` (str): Casjobs context used for this query.
         * `task_name` (str): The task name.
         * `system` (bool) : Whether or not to run this job as a system job (not
           visible in the web UI or history)
@@ -124,12 +127,14 @@ class CasJobs(object):
         * `results` (str): The result of the job as a long string.
 
         """
+        if not context:
+            context = self.context
         params = {"qry": q, "context": context, "taskname": task_name,
                 "isSystem": system}
         r = self._send_request("ExecuteQuickJob", params=params)
         return self._parse_single(r.text, "string")
 
-    def submit(self, q, context="DR7", task_name="casjobs", estimate=30):
+    def submit(self, q, context=None, task_name="casjobs", estimate=30):
         """
         Submit a job to CasJobs.
 
@@ -139,6 +144,7 @@ class CasJobs(object):
 
         ## Keyword Arguments
 
+        * `context` (str): Casjobs context used for this query.
         * `task_name` (str): The task name.
         * `estimate` (int): Estimate of the time this job will take (in minutes).
 
@@ -147,6 +153,8 @@ class CasJobs(object):
         * `job_id` (int): The submission ID.
 
         """
+        if not context:
+            context = self.context
         params = {"qry": q, "context": context, "taskname": task_name,
                   "estimate": estimate}
         r = self._send_request("SubmitJob", params=params)
@@ -256,6 +264,7 @@ class CasJobs(object):
 
         * `job_id` (int): The id of the _output_ job.
         * `outfn` (str): The file where the output should be stored.
+            May also be a file-like object with a 'write' method.
 
         """
         job_info = self.job_info(jobid=job_id)[0]
@@ -277,9 +286,12 @@ class CasJobs(object):
                     %(remotefn, code))
 
         # Save the data to a file.
-        f = open(outfn, "wb")
-        f.write(r.content)
-        f.close()
+        try:
+            outfn.write(r.content)
+        except AttributeError:
+            f = open(outfn, "wb")
+            f.write(r.content)
+            f.close()
 
     def request_and_get_output(self, table, outtype, outfn):
         """
@@ -295,6 +307,7 @@ class CasJobs(object):
             FITS    - Flexible Image Transfer System (FITS Binary)
             VOTable - XML Virtual Observatory VOTABLE
         * `outfn` (str): The file where the output should be stored.
+            May also be a file-like object with a 'write' method.
 
         """
         job_id = self.request_output(table, outtype)
