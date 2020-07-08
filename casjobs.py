@@ -9,6 +9,7 @@ import time
 import os
 import logging
 import html
+import re
 from xml.dom import minidom
 
 import requests
@@ -88,15 +89,37 @@ class CasJobs(object):
         code = r.status_code
         if code != 200:
             if hasattr(r,'text') and r.text:
-                # include only the first two lines of the error message
-                # (Java error messages can have long tracebacks)
-                msg = '\n'.join(r.text.split('\n')[:2])
-                msg = html.unescape(msg)
+                msg = self._parse_error(r.text)
                 raise Exception("%s failed with status: %d\n%s"%(job_type, code, msg))
             else:
                 raise Exception("%s failed with status: %d (no additional information)"%(job_type, code))
 
         return r
+
+    def _parse_error(self, text, maxlines=2):
+        """
+        Extract SQL error message from Java traceback
+
+        If the SQL error is not found, the first maxlines lines of the
+        (long) Java traceback are returned.
+
+        ### Arguments
+
+        * `text` (str): The request response (usually a Java traceback)
+        * `maxlines` (int): Maximum lines to return if not a SQL error
+
+        ## Returns
+
+        * `msg` (str): Error message with HTML entities decoded
+
+        """
+        pat = re.compile(r'System.Exception: *(?P<msg>.*) *--->',re.DOTALL)
+        mm = pat.search(text)
+        if mm:
+            msg = mm.group('msg')
+        else:
+            msg = '\n'.join(text.split('\n')[:maxlines])
+        return html.unescape(msg)
 
     def _parse_single(self, text, tagname):
         """
