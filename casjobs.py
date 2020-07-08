@@ -8,6 +8,7 @@ __all__ = ["CasJobs"]
 import time
 import os
 import logging
+import html
 from xml.dom import minidom
 
 import requests
@@ -82,11 +83,18 @@ class CasJobs(object):
         elif self.request_type == 'POST':
             r = requests.post(path, data=params)
         else:
-            raise ValueError('`resest_type` is invalid!')
+            raise ValueError('`request_type` is invalid!')
 
         code = r.status_code
         if code != 200:
-            raise Exception("%s failed with status: %d"%(job_type, code))
+            if hasattr(r,'text') and r.text:
+                # include only the first two lines of the error message
+                # (Java error messages can have long tracebacks)
+                msg = '\n'.join(r.text.split('\n')[:2])
+                msg = html.unescape(msg)
+                raise Exception("%s failed with status: %d\n%s"%(job_type, code, msg))
+            else:
+                raise Exception("%s failed with status: %d (no additional information)"%(job_type, code))
 
         return r
 
