@@ -8,11 +8,21 @@ __all__ = ["CasJobs"]
 import time
 import os
 import logging
-import html
 import re
 from xml.dom import minidom
-
 import requests
+
+try:
+    from html import unescape
+except ImportError:
+    # Python 2.7
+    import htmllib
+    def unescape(s):
+        p = htmllib.HTMLParser(None)
+        p.save_bgn()
+        p.feed(s)
+        return p.save_end()
+
 
 class CasJobs(object):
     """
@@ -119,7 +129,7 @@ class CasJobs(object):
             msg = mm.group('msg')
         else:
             msg = '\n'.join(text.split('\n')[:maxlines])
-        return html.unescape(msg)
+        return unescape(msg)
 
     def _parse_single(self, text, tagname):
         """
