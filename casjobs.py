@@ -12,6 +12,10 @@ from xml.dom import minidom
 
 import requests
 
+
+logger = logging.getLogger(__name__)
+
+
 class CasJobs(object):
     """
     Wrapper around the CasJobs service.
@@ -209,7 +213,7 @@ class CasJobs(object):
         """
         while True:
             status = self.status(job_id)
-            logging.info("Monitoring job: %d - Status: %d, %s"
+            logger.info("Monitoring job: %d - Status: %d, %s"
                     %(job_id, status[0], status[1]))
             if status[0] in [3, 4, 5]:
                 return status
