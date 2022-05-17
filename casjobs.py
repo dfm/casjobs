@@ -88,7 +88,7 @@ class CasJobs(object):
         params["wsid"] = params.get("wsid", self.userid)
         params["pw"]   = params.get("pw", self.password)
 
-        path = os.path.join(self.base_url, job_type)
+        path = self.base_url + '/' + job_type
         if self.request_type == 'GET':
             r = requests.get(path, params=params)
         elif self.request_type == 'POST':
