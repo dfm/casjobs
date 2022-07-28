@@ -22,9 +22,9 @@ with open("requirements.txt") as f:
 
 setup(
     name="casjobs",
-    version="0.0.1",
+    version="0.0.2",
     author="Daniel Foreman-Mackey",
-    author_email="danfm@nyu.edu",
+    author_email="dfm@dfm.io",
     url="https://github.com/dfm/casjobs",
     py_modules=["casjobs", ],
     install_requires=required,
